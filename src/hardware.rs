@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+#[derive(Debug)]
 pub enum Button {
     Up,
     Down,
@@ -70,6 +71,7 @@ impl Joypad {
             Button::B => &mut self.b,
         };
         *target = matches!(state, ButtonState::Down);
+        println!("{button:?}: {state:?}")
     }
 
     pub fn get(&self, button: Button) -> ButtonState {
