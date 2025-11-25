@@ -70,6 +70,12 @@ pub struct VRam {
     pub tilemap1: TileMap,
 }
 
+impl Default for VRam {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VRam {
     pub fn new() -> Self {
         Self {
@@ -129,15 +135,18 @@ impl Memory for Oam {
 }
 
 memory_region!(UnusedMemory, 0x0060, 0xFEA0);
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, PartialEq)]
 pub struct LCDC {
     lcdcontrol: u8,
 }
 #[derive(Copy, Clone, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub struct SCY {
     pub scroll_y: u8,
 }
 #[derive(Copy, Clone, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub struct SCX {
     pub scroll_x: u8,
 }
@@ -148,6 +157,7 @@ pub struct IORegisters {
     pub scy: SCY,
     pub scx: SCX,
 }
+
 impl IORegisters {
     pub fn new() -> Self {
         Self {
@@ -156,6 +166,12 @@ impl IORegisters {
             scy: SCY { scroll_y: 0 },
             scx: SCX { scroll_x: 0 },
         }
+    }
+}
+
+impl Default for IORegisters {
+    fn default() -> Self {
+        Self::new()
     }
 }
 impl Memory for IORegisters {
@@ -249,7 +265,7 @@ impl MemoryMap {
         }
     }
     pub fn load_tiles(self) -> Vec<Tile> {
-        let mut i = 0 as usize;
+        let mut i = 0_usize;
         let mut tiles: Vec<Tile> = Vec::new();
         while i <= 255 {
             let tile = self
@@ -262,5 +278,11 @@ impl MemoryMap {
             i += 1;
         }
         tiles
+    }
+}
+
+impl Default for MemoryMap {
+    fn default() -> Self {
+        Self::new()
     }
 }

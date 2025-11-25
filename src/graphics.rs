@@ -118,6 +118,12 @@ impl ScanLine {
         }
     }
 }
+
+impl Default for ScanLine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 #[derive(Clone)]
 pub struct Display {
     pub lines: [ScanLine; 144],
@@ -134,9 +140,7 @@ impl Display {
         debug_assert!(x <= 160 && y <= 144);
         self.lines[y].pixels[x] = color;
     }
-    pub fn update(&mut self, memory: &memory::MemoryMap) {
-        ()
-    }
+    pub fn update(&mut self, memory: &memory::MemoryMap) {}
     fn load_tiles_from_vram(memory: &memory::MemoryMap) {}
     pub fn test_pattern(&mut self) {
         let mut i = 0;
@@ -167,5 +171,11 @@ impl Display {
                 );
             }
         }
+    }
+}
+
+impl Default for Display {
+    fn default() -> Self {
+        Self::new()
     }
 }

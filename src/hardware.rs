@@ -6,7 +6,7 @@ enum SelectMode {
     Buttons,
 }
 
-enum Button {
+pub enum Button {
     Up,
     Down,
     Left,
@@ -17,7 +17,7 @@ enum Button {
     B,
 }
 
-enum ButtonState {
+pub enum ButtonState {
     Up,
     Down,
 }
@@ -30,6 +30,12 @@ impl Hardware {
         Self {
             joypad: Joypad::new(),
         }
+    }
+}
+
+impl Default for Hardware {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

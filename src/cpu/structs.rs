@@ -49,6 +49,12 @@ impl Flags {
     }
 }
 
+impl Default for Flags {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct BAndC {
     pub b: u8,
