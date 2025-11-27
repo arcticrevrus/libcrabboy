@@ -135,36 +135,100 @@ impl Memory for Oam {
 }
 
 memory_region!(UnusedMemory, 0x0060, 0xFEA0);
+
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct JoyPadIO {
+    pub buttons: u8,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct SerialIO {
+    pub serial_data: u8,
+    pub transfer_control: u8,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct TimerAndDivider {
+    pub divider_register: u8,
+    pub timer_counter: u8,
+    pub timer_modulo: u8,
+    pub timer_control: u8,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct InterruptFlags {
+    pub interrupt_flag: u8,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct AudioRegisters {
+    pub master_control: u8,
+    pub sound_panning: u8,
+    pub master_volume_and_vin: u8,
+    pub channel_1_sweep: u8,
+    pub channel_1_length_and_duty_cycle: u8,
+    pub channel_1_volume_and_envelope: u8,
+    pub channel_1_period_low: u8,
+    pub channel_1_period_high_and_control: u8,
+    pub channel_2_length_and_duty_cycle: u8,
+    pub channel_2_volume_and_envelope: u8,
+    pub channel_2_period_low: u8,
+    pub channel_2_period_high_and_control: u8,
+    pub channel_3_dac_enable: u8,
+    pub channel_3_length_timer: u8,
+    pub channel_3_output_level: u8,
+    pub channel_3_period_low: u8,
+    pub channel_3_period_high_and_control: u8,
+    pub channel_4_length_timer: u8,
+    pub channel_4_volume_and_envelope: u8,
+    pub channel_4_frequency_and_randomness: u8,
+    pub channel_4_control: u8,
+    pub wave_pattern_ram: [u8; 16],
+}
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Copy, Clone, PartialEq)]
 pub struct LCDC {
     lcdcontrol: u8,
 }
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Default, Copy, Clone, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub struct SCY {
     pub scroll_y: u8,
 }
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Default, Copy, Clone, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub struct SCX {
     pub scroll_x: u8,
 }
+
+#[derive(Default, Copy, Clone, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
+pub struct DMA {
+    pub oam_dma: u8,
+}
 #[derive(Copy, Clone, PartialEq)]
 pub struct IORegisters {
     memory: [u8; 0x0080],
+    pub joypad: JoyPadIO,
+    pub serial: SerialIO,
+    pub timer_and_divider: TimerAndDivider,
+    pub interrupt_flags: InterruptFlags,
+    pub audio_registers: AudioRegisters,
     pub lcdcontrol: LCDC,
     pub scy: SCY,
     pub scx: SCX,
+    pub dma: DMA,
 }
 
 impl IORegisters {
     pub fn new() -> Self {
         Self {
             memory: [0; 0x0080],
+            joypad: JoyPadIO::default(),
+            serial: SerialIO::default(),
+            timer_and_divider: TimerAndDivider::default(),
+            interrupt_flags: InterruptFlags::default(),
+            audio_registers: AudioRegisters::default(),
             lcdcontrol: LCDC { lcdcontrol: 0 },
             scy: SCY { scroll_y: 0 },
             scx: SCX { scroll_x: 0 },
+            dma: DMA::default(),
         }
     }
 }
@@ -176,20 +240,86 @@ impl Default for IORegisters {
 }
 impl Memory for IORegisters {
     fn read(&self, address: u16) -> u8 {
+        #[allow(clippy::match_overlapping_arm)]
         match address {
+            0xFF00 => self.joypad.buttons,
+            0xFF01 => self.serial.serial_data,
+            0xFF02 => self.serial.transfer_control,
+            0xFF04 => self.timer_and_divider.divider_register,
+            0xFF05 => self.timer_and_divider.timer_counter,
+            0xFF06 => self.timer_and_divider.timer_modulo,
+            0xFF07 => self.timer_and_divider.timer_control,
+            0xFF0F => self.interrupt_flags.interrupt_flag,
+            0xFF10 => self.audio_registers.channel_1_sweep,
+            0xFF11 => self.audio_registers.channel_1_length_and_duty_cycle,
+            0xFF12 => self.audio_registers.channel_1_volume_and_envelope,
+            0xFF13 => self.audio_registers.channel_1_period_low,
+            0xFF14 => self.audio_registers.channel_1_period_high_and_control,
+            0xFF16 => self.audio_registers.channel_2_length_and_duty_cycle,
+            0xFF17 => self.audio_registers.channel_2_volume_and_envelope,
+            0xFF18 => self.audio_registers.channel_2_period_low,
+            0xFF19 => self.audio_registers.channel_2_period_high_and_control,
+            0xFF1A => self.audio_registers.channel_3_dac_enable,
+            0xFF1B => self.audio_registers.channel_3_length_timer,
+            0xFF1C => self.audio_registers.channel_3_output_level,
+            0xFF1D => self.audio_registers.channel_3_period_low,
+            0xFF1E => self.audio_registers.channel_3_period_high_and_control,
+            0xFF20 => self.audio_registers.channel_4_length_timer,
+            0xFF21 => self.audio_registers.channel_4_volume_and_envelope,
+            0xFF22 => self.audio_registers.channel_4_frequency_and_randomness,
+            0xFF23 => self.audio_registers.channel_4_control,
+            0xFF24 => self.audio_registers.master_volume_and_vin,
+            0xFF25 => self.audio_registers.sound_panning,
+            0xFF26 => self.audio_registers.master_control,
+            0xFF30..=0xFF3F => self.audio_registers.wave_pattern_ram[(address - 0xFF30) as usize],
             0xFF40 => self.lcdcontrol.lcdcontrol,
-            0xFF00..=0xFF3F | 0xFF41..=0xFF80 => self.memory[(address - 0xFF00) as usize],
+            0xFF46 => self.dma.oam_dma,
+            0xFF0..=0xFF80 => self.memory[(address - 0xFF00) as usize],
             _ => unreachable!(),
         }
     }
     fn write(&mut self, address: u16, value: u8) {
-        match address {
-            0xFF40 => self.lcdcontrol.lcdcontrol = value,
-            0xFF00..=0xFF3F | 0xFF41..=0xFF80 => self.memory[(address - 0xFF00) as usize] = value,
+        #[allow(clippy::match_overlapping_arm)]
+        let dest = match address {
+            0xFF00 => &mut self.joypad.buttons,
+            0xFF01 => &mut self.serial.serial_data,
+            0xFF02 => &mut self.serial.transfer_control,
+            0xFF04 => &mut self.timer_and_divider.divider_register,
+            0xFF05 => &mut self.timer_and_divider.timer_counter,
+            0xFF06 => &mut self.timer_and_divider.timer_modulo,
+            0xFF07 => &mut self.timer_and_divider.timer_control,
+            0xFF0F => &mut self.interrupt_flags.interrupt_flag,
+            0xFF10 => &mut self.audio_registers.channel_1_sweep,
+            0xFF11 => &mut self.audio_registers.channel_1_length_and_duty_cycle,
+            0xFF12 => &mut self.audio_registers.channel_1_volume_and_envelope,
+            0xFF13 => &mut self.audio_registers.channel_1_period_low,
+            0xFF14 => &mut self.audio_registers.channel_1_period_high_and_control,
+            0xFF16 => &mut self.audio_registers.channel_2_length_and_duty_cycle,
+            0xFF17 => &mut self.audio_registers.channel_2_volume_and_envelope,
+            0xFF18 => &mut self.audio_registers.channel_2_period_low,
+            0xFF19 => &mut self.audio_registers.channel_2_period_high_and_control,
+            0xFF1A => &mut self.audio_registers.channel_3_dac_enable,
+            0xFF1C => &mut self.audio_registers.channel_3_output_level,
+            0xFF1D => &mut self.audio_registers.channel_3_period_low,
+            0xFF1E => &mut self.audio_registers.channel_3_period_high_and_control,
+            0xFF20 => &mut self.audio_registers.channel_4_length_timer,
+            0xFF21 => &mut self.audio_registers.channel_4_volume_and_envelope,
+            0xFF22 => &mut self.audio_registers.channel_4_frequency_and_randomness,
+            0xFF23 => &mut self.audio_registers.channel_4_control,
+            0xFF24 => &mut self.audio_registers.master_volume_and_vin,
+            0xFF25 => &mut self.audio_registers.sound_panning,
+            0xFF26 => &mut self.audio_registers.master_control,
+            0xFF30..=0xFF3F => {
+                &mut self.audio_registers.wave_pattern_ram[(address - 0xFF30) as usize]
+            }
+            0xFF40 => &mut self.lcdcontrol.lcdcontrol,
+            0xFF46 => &mut self.dma.oam_dma,
+            0xFF00..=0xFF80 => &mut self.memory[(address - 0xFF00) as usize],
             _ => {
                 unreachable!()
             }
         };
+        *dest = value;
     }
 }
 memory_region!(HRam, 0x007F, 0xFF80);
